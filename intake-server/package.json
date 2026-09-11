@@ -1,0 +1,13 @@
+{
+  "name": "intake-server",
+  "version": "1.0.0",
+  "description": "상담 접수 관리 - 사내 서버용 (Express + 파일 기반 저장)",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
