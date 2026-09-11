@@ -1,0 +1,873 @@
+<title>상담 접수 관리</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@600;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#F3F6F6;
+    --surface:#FFFFFF;
+    --surface-2:#E9F0EF;
+    --text:#16211F;
+    --text-muted:#5A6D6A;
+    --border:#DCE6E4;
+    --accent:#256B64;
+    --accent-strong:#184E49;
+    --accent-soft:#DCEEEB;
+    --wait:#8A5A00;
+    --wait-soft:#FBEFDA;
+    --refer:#4A4FB0;
+    --refer-soft:#E6E7F7;
+    --done:#276B45;
+    --done-soft:#DFF0E4;
+    --danger:#B23A2E;
+    --danger-soft:#FBE4E1;
+    --visit:#7C4FB0;
+    --visit-soft:#EEE3F7;
+    --call:#1F7A8C;
+    --call-soft:#DCF0F3;
+    --shadow: 0 1px 2px rgba(15,30,28,.06), 0 8px 20px rgba(15,30,28,.07);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#101715;
+      --surface:#17201E;
+      --surface-2:#1D2825;
+      --text:#E7F0EE;
+      --text-muted:#93A6A2;
+      --border:#2A3835;
+      --accent:#6FC2B8;
+      --accent-strong:#8FD6CD;
+      --accent-soft:#1D3835;
+      --wait:#E0AD52;
+      --wait-soft:#3A2E14;
+      --refer:#A9ADEE;
+      --refer-soft:#282A4A;
+      --done:#7FCB9E;
+      --done-soft:#1B3627;
+      --danger:#E38070;
+      --danger-soft:#3A211C;
+      --visit:#C4A2E8;
+      --visit-soft:#2E2440;
+      --call:#7BC7D6;
+      --call-soft:#173338;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 24px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#101715;
+    --surface:#17201E;
+    --surface-2:#1D2825;
+    --text:#E7F0EE;
+    --text-muted:#93A6A2;
+    --border:#2A3835;
+    --accent:#6FC2B8;
+    --accent-strong:#8FD6CD;
+    --accent-soft:#1D3835;
+    --wait:#E0AD52;
+    --wait-soft:#3A2E14;
+    --refer:#A9ADEE;
+    --refer-soft:#282A4A;
+    --done:#7FCB9E;
+    --done-soft:#1B3627;
+    --danger:#E38070;
+    --danger-soft:#3A211C;
+    --visit:#C4A2E8;
+    --visit-soft:#2E2440;
+    --call:#7BC7D6;
+    --call-soft:#173338;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 24px rgba(0,0,0,.4);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans KR', -apple-system, sans-serif;
+    padding-inline:20px;
+    padding-block:0 60px;
+  }
+  h1,h2,h3,.brand{font-family:'Libre Franklin','IBM Plex Sans KR',sans-serif; text-wrap:balance;}
+  .tabular{font-variant-numeric:tabular-nums;}
+  button{font-family:inherit;}
+  a{color:inherit;}
+
+  .wrap{max-width:1120px; margin:0 auto;}
+
+  /* header */
+  header{padding-block:26px 16px;}
+  .eyebrow{font-size:12px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--accent); margin-bottom:6px;}
+  h1{font-size:clamp(22px,3.6vw,28px); font-weight:800; margin:0; color:var(--text);}
+  .sub{color:var(--text-muted); font-size:14px; margin-top:5px;}
+
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:20px;}
+  .stat{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:14px 16px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .stat .n{font-size:26px; font-weight:800; font-family:'Libre Franklin',sans-serif;}
+  .stat .l{font-size:12.5px; color:var(--text-muted); font-weight:600;}
+  .stat.wait .n{color:var(--wait);} .stat.refer .n{color:var(--refer);}
+  .stat.done .n{color:var(--done);} .stat.refuse .n{color:var(--danger);}
+
+  @media (max-width:640px){ .stats{grid-template-columns:repeat(2,1fr);} }
+
+  /* tabs */
+  .tabs{display:flex; gap:6px; margin-top:22px; border-bottom:1px solid var(--border);}
+  .tab-btn{
+    padding:10px 4px; margin-right:14px; background:none; border:none; cursor:pointer;
+    font-size:14.5px; font-weight:700; color:var(--text-muted);
+    border-bottom:2.5px solid transparent; margin-bottom:-1px;
+  }
+  .tab-btn.active{color:var(--accent-strong); border-bottom-color:var(--accent);}
+  .tab-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  .panel{display:none; padding-top:16px;}
+  .panel.active{display:block;}
+
+  /* toolbar */
+  .toolbar{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px;}
+  .toolbar input[type="search"]{
+    flex:1 1 200px; min-width:0;
+    padding:9px 12px; border-radius:9px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text); font-size:13.5px;
+  }
+  select{
+    padding:9px 10px; border-radius:9px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text); font-size:13.5px;
+  }
+  .btn{
+    padding:9px 15px; border-radius:9px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text); font-size:13.5px; font-weight:700;
+    cursor:pointer; white-space:nowrap;
+  }
+  .btn:hover{border-color:var(--accent);}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn.primary:hover{background:var(--accent-strong); border-color:var(--accent-strong);}
+  .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+
+  /* table */
+  .table-card{background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); overflow:hidden;}
+  .table-wrap{overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; font-size:13.5px; min-width:760px;}
+  th{
+    text-align:left; font-size:11.5px; font-weight:700; letter-spacing:.03em; color:var(--text-muted);
+    background:var(--surface-2); padding:10px 12px; border-bottom:1px solid var(--border); white-space:nowrap;
+  }
+  td{padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{cursor:pointer;}
+  tbody tr:hover{background:var(--surface-2);}
+  .name-cell{font-weight:700;}
+  .phone-cell{color:var(--text-muted); white-space:nowrap;}
+  .summary-cell{color:var(--text-muted); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+  .pill{
+    display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:99px;
+    font-size:12px; font-weight:700; white-space:nowrap;
+  }
+  .pill.wait{background:var(--wait-soft); color:var(--wait);}
+  .pill.refer{background:var(--refer-soft); color:var(--refer);}
+  .pill.done{background:var(--done-soft); color:var(--done);}
+  .pill.refuse{background:var(--danger-soft); color:var(--danger);}
+  .pill.visit{background:var(--visit-soft); color:var(--visit);}
+  .pill.call{background:var(--call-soft); color:var(--call);}
+  .pill.none{background:var(--surface-2); color:var(--text-muted);}
+
+  .empty-state{
+    padding:56px 20px; text-align:center; color:var(--text-muted);
+  }
+  .empty-state .big{font-size:15px; font-weight:700; color:var(--text); margin-bottom:6px;}
+  .empty-state .small{font-size:13px;}
+
+  /* schedule (agenda) view */
+  .agenda-group{margin-bottom:22px;}
+  .agenda-group h3{font-size:14px; color:var(--text-muted); font-weight:700; margin:0 0 8px; letter-spacing:.02em;}
+  .agenda-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    box-shadow:var(--shadow); padding:13px 15px; margin-bottom:8px;
+    display:flex; align-items:center; gap:14px; cursor:pointer;
+  }
+  .agenda-card:hover{border-color:var(--accent);}
+  .agenda-date{
+    flex:none; width:58px; text-align:center; font-family:'Libre Franklin',sans-serif;
+  }
+  .agenda-date .d{font-size:20px; font-weight:800; line-height:1;}
+  .agenda-date .m{font-size:11px; color:var(--text-muted); font-weight:700;}
+  .agenda-main{flex:1; min-width:0;}
+  .agenda-main .row1{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .agenda-main .name{font-weight:700;}
+  .agenda-main .meta{font-size:12.5px; color:var(--text-muted); margin-top:3px;}
+
+  /* modal */
+  .overlay{
+    position:fixed; inset:0; background:rgba(10,18,16,.45); display:none;
+    align-items:flex-start; justify-content:center; padding:5vh 16px; overflow-y:auto; z-index:20;
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:var(--surface); border-radius:16px; border:1px solid var(--border);
+    width:100%; max-width:560px; padding:22px 22px 20px; box-shadow:var(--shadow);
+  }
+  .modal h2{font-size:18px; margin:0 0 16px;}
+  .field{margin-bottom:13px;}
+  .field label{display:block; font-size:12.5px; font-weight:700; color:var(--text-muted); margin-bottom:5px;}
+  .field input, .field select, .field textarea{
+    width:100%; padding:9px 11px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text); font-size:13.5px; font-family:inherit;
+  }
+  .field textarea{resize:vertical; min-height:64px;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  @media (max-width:480px){ .field-row{grid-template-columns:1fr;} }
+  .modal-actions{display:flex; justify-content:space-between; align-items:center; margin-top:18px; gap:8px;}
+  .modal-actions .right{display:flex; gap:8px;}
+  .btn.danger{color:var(--danger); border-color:var(--danger-soft);}
+  .btn.danger:hover{background:var(--danger-soft);}
+  .followup-fields{display:none; border-top:1px dashed var(--border); padding-top:12px; margin-top:2px;}
+  .followup-fields.show{display:block;}
+
+  .staff-row{
+    display:flex; align-items:center; gap:8px; padding:8px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .staff-row:last-child{border-bottom:none;}
+  .staff-row input[type="text"]{flex:1; min-width:0;}
+  .staff-row .btn{padding:7px 11px; font-size:12.5px;}
+  .staff-empty{color:var(--text-muted); font-size:13px; padding:10px 0;}
+
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--accent-strong); color:#fff; padding:10px 18px; border-radius:99px;
+    font-size:13px; font-weight:600; box-shadow:var(--shadow); z-index:30;
+    opacity:0; pointer-events:none; transition:opacity .25s;
+  }
+  .toast.show{opacity:1;}
+
+  .offline-banner{
+    display:none; background:var(--wait-soft); color:var(--wait); border:1px solid var(--wait);
+    border-radius:10px; padding:10px 14px; font-size:13px; margin-top:16px;
+  }
+  .offline-banner.show{display:block;}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Client Intake · 상담 운영</div>
+    <h1>일반상담 접수 관리</h1>
+    <p class="sub">전화 접수부터 내소·전화 후속 일정까지 한 곳에서 관리합니다. 여러 담당자가 동시에 입력·조회할 수 있습니다.</p>
+
+    <div class="stats">
+      <div class="stat wait"><span class="n tabular" id="statWait">0</span><span class="l">대기</span></div>
+      <div class="stat done"><span class="n tabular" id="statDone">0</span><span class="l">완료</span></div>
+      <div class="stat refer"><span class="n tabular" id="statRefer">0</span><span class="l">연계(자살,재활)</span></div>
+      <div class="stat refuse"><span class="n tabular" id="statRefuse">0</span><span class="l">거부</span></div>
+    </div>
+
+    <div class="offline-banner" id="offlineBanner">이 화면은 공유 데이터 연결 없이 열려 있어 읽기 전용입니다. Claude.ai 아티팩트에서 다시 열어주세요.</div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" id="tabBtnList" role="tab" aria-selected="true">접수 목록</button>
+      <button class="tab-btn" id="tabBtnSchedule" role="tab" aria-selected="false">일정 관리</button>
+    </div>
+  </header>
+
+  <!-- 접수 목록 -->
+  <section class="panel active" id="panelList">
+    <div class="toolbar">
+      <input type="search" id="searchInput" placeholder="이름 또는 연락처 검색">
+      <select id="filterStatus">
+        <option value="">상태 전체</option>
+        <option value="대기">대기</option>
+        <option value="완료">완료</option>
+        <option value="연계(자살,재활)">연계(자살,재활)</option>
+        <option value="거부">거부</option>
+      </select>
+      <select id="filterType">
+        <option value="">유형 전체</option>
+        <option value="방문 상담 예약">방문 상담 예약</option>
+        <option value="전화상담">전화상담</option>
+        <option value="기타">기타</option>
+      </select>
+      <select id="filterAssignee">
+        <option value="">담당자 전체</option>
+      </select>
+      <button class="btn" id="openStaffBtn" style="margin-left:auto;">담당자 관리</button>
+      <button class="btn primary" id="openAddBtn">+ 새 접수</button>
+    </div>
+
+    <div class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>접수일</th><th>이름</th><th>연락처</th><th>유형</th><th>상담내용</th>
+              <th>담당자</th><th>상태</th><th>후속 일정</th>
+            </tr>
+          </thead>
+          <tbody id="listBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="listEmpty" hidden>
+        <div class="big">아직 접수된 상담이 없습니다</div>
+        <div class="small">오른쪽 위 "+ 새 접수" 버튼으로 첫 상담을 등록하세요.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 일정 관리 -->
+  <section class="panel" id="panelSchedule">
+    <div class="toolbar">
+      <select id="scheduleTypeFilter">
+        <option value="">전체 (내소+전화)</option>
+        <option value="내소">내소만</option>
+        <option value="전화">전화만</option>
+      </select>
+    </div>
+    <div id="scheduleBody"></div>
+    <div class="empty-state" id="scheduleEmpty" hidden>
+      <div class="big">예정된 후속 일정이 없습니다</div>
+      <div class="small">접수 목록에서 상담을 열어 내소 또는 전화 일정을 등록하세요.</div>
+    </div>
+  </section>
+</div>
+
+<!-- 등록/수정 모달 -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modalTitle">새 상담 접수</h2>
+    <form id="intakeForm">
+      <div class="field-row">
+        <div class="field">
+          <label for="fName">이름 *</label>
+          <input type="text" id="fName" required>
+        </div>
+        <div class="field">
+          <label for="fPhone">연락처 *</label>
+          <input type="tel" id="fPhone" placeholder="010-0000-0000" required>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="fDate">접수일</label>
+          <input type="date" id="fDate" required>
+        </div>
+        <div class="field">
+          <label for="fType">상담 유형</label>
+          <select id="fType">
+            <option value="방문 상담 예약">방문 상담 예약</option>
+            <option value="전화상담">전화상담</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="fSummary">상담 내용 요약</label>
+        <textarea id="fSummary" placeholder="문의 요지, 특이사항 등"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="fAssignee">담당자</label>
+          <select id="fAssignee">
+            <option value="">미배정</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fStatus">처리 상태</label>
+          <select id="fStatus">
+            <option value="대기">대기</option>
+            <option value="완료">완료</option>
+            <option value="연계(자살,재활)">연계(자살,재활)</option>
+            <option value="거부">거부</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="fFollowType">후속 일정</label>
+        <select id="fFollowType">
+          <option value="없음">없음 (전화상담으로 종결)</option>
+          <option value="내소">내소 예정</option>
+          <option value="전화">전화 예정</option>
+        </select>
+      </div>
+      <div class="followup-fields" id="followupFields">
+        <div class="field-row">
+          <div class="field">
+            <label for="fFollowDate">일정 날짜</label>
+            <input type="date" id="fFollowDate">
+          </div>
+          <div class="field">
+            <label for="fFollowTime">일정 시간</label>
+            <input type="time" id="fFollowTime">
+          </div>
+        </div>
+        <div class="field">
+          <label for="fFollowNote">일정 메모</label>
+          <input type="text" id="fFollowNote" placeholder="예: 2차 상담, 서류 지참 안내">
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <div class="left">
+          <button type="button" class="btn danger" id="deleteBtn" hidden>삭제</button>
+        </div>
+        <div class="right">
+          <button type="button" class="btn" id="cancelBtn">취소</button>
+          <button type="submit" class="btn primary" id="saveBtn">저장</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 담당자 관리 모달 -->
+<div class="overlay" id="staffOverlay">
+  <div class="modal">
+    <h2>담당자 관리</h2>
+    <div class="field">
+      <label for="newStaffName">새 담당자 추가</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="newStaffName" placeholder="이름 입력 후 추가">
+        <button type="button" class="btn primary" id="addStaffBtn" style="flex:none;">추가</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>현재 담당자</label>
+      <div id="staffList"></div>
+    </div>
+    <div class="modal-actions">
+      <div class="left"></div>
+      <div class="right">
+        <button type="button" class="btn" id="closeStaffBtn">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const KOR_MONTH = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
+
+  let db = null;
+  let records = [];        // 전체 접수 레코드 (실시간 구독)
+  let staffNames = ["근무자1","근무자2","근무자3"];  // 담당자 목록 (실시간 구독, config/staff)
+  let editingId = null;
+  let unsub = null;
+  let unsubStaff = null;
+
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+
+  function toast(msg){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._h);
+    toast._h = setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  // ---------- 필터 / 검색 ----------
+  function getFiltered(){
+    const q = $("searchInput").value.trim().toLowerCase();
+    const st = $("filterStatus").value;
+    const tp = $("filterType").value;
+    const as = $("filterAssignee").value;
+    return records.filter(r => {
+      if (st && r.status !== st) return false;
+      if (tp && r.type !== tp) return false;
+      if (as && r.assignee !== as) return false;
+      if (q && !((r.name||"").toLowerCase().includes(q) || (r.phone||"").toLowerCase().includes(q))) return false;
+      return true;
+    });
+  }
+
+  const STATUS_CLASS = { "대기":"wait", "완료":"done", "연계(자살,재활)":"refer", "거부":"refuse" };
+  function statusPill(status){
+    const cls = STATUS_CLASS[status] || "wait";
+    return `<span class="pill ${cls}">${escapeHtml(status)}</span>`;
+  }
+
+  function followPill(r){
+    if (!r.followUpType || r.followUpType === "없음") return `<span class="pill none">없음</span>`;
+    const cls = r.followUpType === "내소" ? "visit" : "call";
+    const when = r.followUpDate ? r.followUpDate.slice(5).replace("-", "/") + (r.followUpTime ? " " + r.followUpTime : "") : "";
+    return `<span class="pill ${cls}">${escapeHtml(r.followUpType)} ${escapeHtml(when)}</span>`;
+  }
+
+  function renderList(){
+    const rows = getFiltered().slice().sort((a,b) => (b.intakeDate||"").localeCompare(a.intakeDate||"") || (b.createdAt||"").localeCompare(a.createdAt||""));
+    const body = $("listBody");
+    $("listEmpty").hidden = records.length !== 0;
+    body.innerHTML = rows.map(r => `
+      <tr data-id="${r.id}">
+        <td class="tabular">${escapeHtml(r.intakeDate||"")}</td>
+        <td class="name-cell">${escapeHtml(r.name)}</td>
+        <td class="phone-cell tabular">${escapeHtml(r.phone)}</td>
+        <td>${escapeHtml(r.type||"")}</td>
+        <td class="summary-cell" title="${escapeHtml(r.summary||"")}">${escapeHtml(r.summary||"")}</td>
+        <td>${escapeHtml(r.assignee||"-")}</td>
+        <td>${statusPill(r.status||"대기")}</td>
+        <td>${followPill(r)}</td>
+      </tr>
+    `).join("");
+    body.querySelectorAll("tr").forEach(tr => {
+      tr.addEventListener("click", () => openEdit(tr.getAttribute("data-id")));
+    });
+
+    // 담당자 필터 옵션 채우기 (관리 목록 + 레코드에 남아있는 이전 담당자명 모두 포함)
+    const recordAssignees = Array.from(new Set(records.map(r => r.assignee).filter(Boolean)));
+    const allAssignees = Array.from(new Set([...staffNames, ...recordAssignees])).sort();
+    const sel = $("filterAssignee");
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">담당자 전체</option>' + allAssignees.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join("");
+    sel.value = allAssignees.includes(cur) ? cur : "";
+  }
+
+  // ---------- 담당자 관리 ----------
+  function renderAssigneeSelect(currentValue){
+    const sel = $("fAssignee");
+    const extra = currentValue && !staffNames.includes(currentValue) ? [currentValue] : [];
+    const options = [...staffNames, ...extra];
+    sel.innerHTML = '<option value="">미배정</option>' + options.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join("");
+    sel.value = currentValue || "";
+  }
+
+  function renderStaffList(){
+    const box = $("staffList");
+    if (!staffNames.length) {
+      box.innerHTML = '<div class="staff-empty">등록된 담당자가 없습니다. 위에서 이름을 추가하세요.</div>';
+      return;
+    }
+    box.innerHTML = staffNames.map(name => `
+      <div class="staff-row" data-name="${escapeHtml(name)}">
+        <input type="text" value="${escapeHtml(name)}">
+        <button type="button" class="btn save-staff-btn">변경</button>
+        <button type="button" class="btn danger del-staff-btn">삭제</button>
+      </div>
+    `).join("");
+    box.querySelectorAll(".staff-row").forEach(row => {
+      const oldName = row.getAttribute("data-name");
+      const input = row.querySelector("input");
+      row.querySelector(".save-staff-btn").addEventListener("click", () => {
+        const newName = input.value.trim();
+        if (!newName || newName === oldName) return;
+        renameStaff(oldName, newName);
+      });
+      row.querySelector(".del-staff-btn").addEventListener("click", () => {
+        const inUse = records.filter(r => r.assignee === oldName).length;
+        const msg = inUse
+          ? `"${oldName}"님은 접수 기록 ${inUse}건에 담당자로 지정되어 있습니다. 목록에서만 제거하고 기존 기록의 담당자 표시는 유지됩니다. 계속할까요?`
+          : `"${oldName}"님을 담당자 목록에서 삭제할까요?`;
+        if (confirm(msg)) deleteStaff(oldName);
+      });
+    });
+  }
+
+  async function saveStaffNames(){
+    if (!db) { toast("공유 데이터에 연결되어 있지 않습니다"); return false; }
+    try {
+      await db.doc("config/staff").set({ names: staffNames, updatedAt: new Date().toISOString() });
+      return true;
+    } catch (err) {
+      toast("담당자 목록을 저장하지 못했습니다");
+      return false;
+    }
+  }
+
+  function refreshStaffUI(){
+    if ($("staffOverlay").classList.contains("open")) renderStaffList();
+    renderList();
+  }
+
+  async function addStaff(name){
+    name = name.trim();
+    if (!name) return;
+    if (staffNames.includes(name)) { toast("이미 있는 이름입니다"); return; }
+    staffNames = [...staffNames, name];
+    if (await saveStaffNames()) toast(`"${name}"님을 추가했습니다`);
+    refreshStaffUI();
+  }
+
+  async function renameStaff(oldName, newName){
+    if (staffNames.includes(newName)) { toast("이미 있는 이름입니다"); return; }
+    const prev = staffNames;
+    staffNames = staffNames.map(n => n === oldName ? newName : n);
+    if (!(await saveStaffNames())) { staffNames = prev; refreshStaffUI(); return; }
+    const affected = records.filter(r => r.assignee === oldName);
+    if (affected.length) {
+      await Promise.all(affected.map(r => db.doc("intakes/" + r.id).update({ assignee: newName }).catch(() => null)));
+    }
+    toast(`"${oldName}" → "${newName}"(으)로 변경했습니다${affected.length ? ` (기존 기록 ${affected.length}건도 함께 변경)` : ""}`);
+    refreshStaffUI();
+  }
+
+  async function deleteStaff(name){
+    const prev = staffNames;
+    staffNames = staffNames.filter(n => n !== name);
+    if (await saveStaffNames()) { toast(`"${name}"님을 삭제했습니다`); } else { staffNames = prev; }
+    refreshStaffUI();
+  }
+
+  function renderStats(){
+    const wait = records.filter(r => r.status === "대기").length;
+    const done = records.filter(r => r.status === "완료").length;
+    const refer = records.filter(r => r.status === "연계(자살,재활)").length;
+    const refuse = records.filter(r => r.status === "거부").length;
+    $("statWait").textContent = wait;
+    $("statDone").textContent = done;
+    $("statRefer").textContent = refer;
+    $("statRefuse").textContent = refuse;
+  }
+
+  function renderSchedule(){
+    const typeFilter = $("scheduleTypeFilter").value;
+    let items = records.filter(r => r.followUpType && r.followUpType !== "없음" && r.followUpDate);
+    if (typeFilter) items = items.filter(r => r.followUpType === typeFilter);
+    items = items.slice().sort((a,b) => (a.followUpDate + (a.followUpTime||"")).localeCompare(b.followUpDate + (b.followUpTime||"")));
+
+    const today = todayStr();
+    const groups = { "지난 일정": [], "오늘": [], "예정": [] };
+    items.forEach(r => {
+      if (r.followUpDate < today) groups["지난 일정"].push(r);
+      else if (r.followUpDate === today) groups["오늘"].push(r);
+      else groups["예정"].push(r);
+    });
+
+    const box = $("scheduleBody");
+    $("scheduleEmpty").hidden = items.length !== 0;
+    let html = "";
+    ["오늘","예정","지난 일정"].forEach(label => {
+      const arr = groups[label];
+      if (!arr.length) return;
+      html += `<div class="agenda-group"><h3>${label} · ${arr.length}건</h3>`;
+      arr.forEach(r => {
+        const d = new Date(r.followUpDate + "T00:00:00");
+        const cls = r.followUpType === "내소" ? "visit" : "call";
+        html += `
+          <div class="agenda-card" data-id="${r.id}">
+            <div class="agenda-date">
+              <div class="d tabular">${d.getDate()}</div>
+              <div class="m">${KOR_MONTH[d.getMonth()]}</div>
+            </div>
+            <div class="agenda-main">
+              <div class="row1">
+                <span class="name">${escapeHtml(r.name)}</span>
+                <span class="pill ${cls}">${escapeHtml(r.followUpType)}${r.followUpTime ? " " + escapeHtml(r.followUpTime) : ""}</span>
+                ${statusPill(r.status||"대기")}
+              </div>
+              <div class="meta">${escapeHtml(r.phone||"")} · 담당 ${escapeHtml(r.assignee||"미배정")}${r.followUpNote ? " · " + escapeHtml(r.followUpNote) : ""}</div>
+            </div>
+          </div>`;
+      });
+      html += `</div>`;
+    });
+    box.innerHTML = html;
+    box.querySelectorAll(".agenda-card").forEach(el => {
+      el.addEventListener("click", () => openEdit(el.getAttribute("data-id")));
+    });
+  }
+
+  function renderAll(){
+    renderStats();
+    renderList();
+    renderSchedule();
+  }
+
+  // ---------- 모달 ----------
+  function toggleFollowFields(){
+    const show = $("fFollowType").value !== "없음";
+    $("followupFields").classList.toggle("show", show);
+  }
+  $("fFollowType").addEventListener("change", toggleFollowFields);
+
+  function openAdd(){
+    editingId = null;
+    $("modalTitle").textContent = "새 상담 접수";
+    $("intakeForm").reset();
+    $("fDate").value = todayStr();
+    renderAssigneeSelect("");
+    $("fStatus").value = "대기";
+    $("fFollowType").value = "없음";
+    toggleFollowFields();
+    $("deleteBtn").hidden = true;
+    $("overlay").classList.add("open");
+    $("fName").focus();
+  }
+
+  function openEdit(id){
+    const r = records.find(x => x.id === id);
+    if (!r) return;
+    editingId = id;
+    $("modalTitle").textContent = "상담 정보 수정";
+    $("fName").value = r.name || "";
+    $("fPhone").value = r.phone || "";
+    $("fDate").value = r.intakeDate || todayStr();
+    $("fType").value = r.type || "방문 상담 예약";
+    $("fSummary").value = r.summary || "";
+    renderAssigneeSelect(r.assignee || "");
+    $("fStatus").value = r.status || "대기";
+    $("fFollowType").value = r.followUpType || "없음";
+    $("fFollowDate").value = r.followUpDate || "";
+    $("fFollowTime").value = r.followUpTime || "";
+    $("fFollowNote").value = r.followUpNote || "";
+    toggleFollowFields();
+    $("deleteBtn").hidden = false;
+    $("overlay").classList.add("open");
+  }
+
+  function closeModal(){
+    $("overlay").classList.remove("open");
+    editingId = null;
+  }
+  $("cancelBtn").addEventListener("click", closeModal);
+  $("overlay").addEventListener("click", (e) => { if (e.target.id === "overlay") closeModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("overlay").classList.contains("open")) closeModal(); });
+
+  $("openAddBtn").addEventListener("click", openAdd);
+
+  $("intakeForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!db) { toast("공유 데이터에 연결되어 있지 않습니다"); return; }
+    const followType = $("fFollowType").value;
+    const payload = {
+      name: $("fName").value.trim(),
+      phone: $("fPhone").value.trim(),
+      intakeDate: $("fDate").value,
+      type: $("fType").value,
+      summary: $("fSummary").value.trim(),
+      assignee: $("fAssignee").value.trim(),
+      status: $("fStatus").value,
+      followUpType: followType,
+      followUpDate: followType !== "없음" ? $("fFollowDate").value : "",
+      followUpTime: followType !== "없음" ? $("fFollowTime").value : "",
+      followUpNote: followType !== "없음" ? $("fFollowNote").value.trim() : "",
+      updatedAt: new Date().toISOString(),
+    };
+    const saveBtn = $("saveBtn");
+    saveBtn.disabled = true;
+    try {
+      if (editingId) {
+        await db.doc("intakes/" + editingId).update(payload);
+        toast("수정했습니다");
+      } else {
+        payload.createdAt = payload.updatedAt;
+        await db.collection("intakes").add(payload);
+        toast("접수를 등록했습니다");
+      }
+      closeModal();
+    } catch (err) {
+      toast("저장하지 못했습니다: " + (err && err.code ? err.code : "오류"));
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  $("deleteBtn").addEventListener("click", async () => {
+    if (!editingId || !db) return;
+    if (!confirm("이 접수 기록을 삭제할까요? 되돌릴 수 없습니다.")) return;
+    try {
+      await db.doc("intakes/" + editingId).delete();
+      toast("삭제했습니다");
+      closeModal();
+    } catch (err) {
+      toast("삭제하지 못했습니다");
+    }
+  });
+
+  // ---------- 담당자 관리 모달 ----------
+  function openStaffModal(){
+    renderStaffList();
+    $("newStaffName").value = "";
+    $("staffOverlay").classList.add("open");
+  }
+  function closeStaffModal(){
+    $("staffOverlay").classList.remove("open");
+  }
+  $("openStaffBtn").addEventListener("click", openStaffModal);
+  $("closeStaffBtn").addEventListener("click", closeStaffModal);
+  $("staffOverlay").addEventListener("click", (e) => { if (e.target.id === "staffOverlay") closeStaffModal(); });
+  $("addStaffBtn").addEventListener("click", async () => {
+    const name = $("newStaffName").value;
+    $("newStaffName").value = "";
+    await addStaff(name);
+  });
+  $("newStaffName").addEventListener("keydown", async (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const name = $("newStaffName").value;
+    $("newStaffName").value = "";
+    await addStaff(name);
+  });
+
+  // ---------- 탭 ----------
+  function setTab(which){
+    const isList = which === "list";
+    $("tabBtnList").classList.toggle("active", isList);
+    $("tabBtnSchedule").classList.toggle("active", !isList);
+    $("tabBtnList").setAttribute("aria-selected", String(isList));
+    $("tabBtnSchedule").setAttribute("aria-selected", String(!isList));
+    $("panelList").classList.toggle("active", isList);
+    $("panelSchedule").classList.toggle("active", !isList);
+  }
+  $("tabBtnList").addEventListener("click", () => setTab("list"));
+  $("tabBtnSchedule").addEventListener("click", () => setTab("schedule"));
+
+  [$("searchInput"),$("filterStatus"),$("filterType"),$("filterAssignee")].forEach(el => {
+    el.addEventListener("input", renderList);
+    el.addEventListener("change", renderList);
+  });
+  $("scheduleTypeFilter").addEventListener("change", renderSchedule);
+
+  // ---------- db 연결 ----------
+  async function boot(){
+    if (!window.claude || !window.claude.use) {
+      $("offlineBanner").classList.add("show");
+      renderAll();
+      return;
+    }
+    db = await window.claude.use("db");
+    if (!db) {
+      $("offlineBanner").classList.add("show");
+      renderAll();
+      return;
+    }
+    unsub = db.collection("intakes").onSnapshot(
+      (snap) => {
+        records = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderAll();
+      },
+      (err) => {
+        toast("실시간 연결 오류: " + (err && err.code ? err.code : ""));
+      }
+    );
+
+    const staffDoc = db.doc("config/staff");
+    let staffSeeded = false;
+    unsubStaff = staffDoc.onSnapshot(
+      (snap) => {
+        if (snap.exists && Array.isArray(snap.data().names)) {
+          staffNames = snap.data().names;
+        } else if (!staffSeeded) {
+          staffSeeded = true;
+          staffDoc.set({ names: staffNames, updatedAt: new Date().toISOString() }).catch(() => null);
+        }
+        refreshStaffUI();
+      },
+      (err) => {
+        toast("담당자 목록 연결 오류: " + (err && err.code ? err.code : ""));
+      }
+    );
+  }
+
+  renderAll();
+  boot();
+})();
+</script>
